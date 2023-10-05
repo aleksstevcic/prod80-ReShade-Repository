@@ -137,6 +137,16 @@ namespace pd80_filmgrain
         ui_min = 0.0f;
         ui_max = 1.0f;
         > = 1.0;
+    uniform bool resAdjust <
+        ui_label = "Resolution Adjustment";
+        ui_tooltip = "Film Grain will impact different resolutions differently due to the grain size, proporitonal to the resolution.\nSet a target resolution, then all other resolutions running the same settings should look similar, by adjusting the Grain Amount proportionally.\n\nRecommended to stay on.";
+        ui_category = "Film Grain (simplex)";
+        > = true;
+    uniform int2 targetResolution <
+        ui_label = "Target Grain Resolution";
+        ui_tooltip = "Set Target Grain Resolution.See Resolution Adjustment for explanation.\nLeft textbox = Screen X, Right textbox = Screen Y.\n\nFor Example:\n1920 for the left textbox\nand\n1080 for the right textbox\n\nwould represent a screen resolution of 1920x1080.";
+        ui_category = "Film Grain (simplex)";
+        > = int2(1920, 1080);
     uniform bool enable_depth <
         ui_label = "Enable depth based adjustments.\nMake sure you have setup your depth buffer correctly.";
         ui_tooltip = "Enable depth based adjustments";
@@ -296,8 +306,19 @@ namespace pd80_filmgrain
         noise.y           = pnoise3D( float3( uv.xy, 2 ), timer );
         noise.z           = pnoise3D( float3( uv.xy, 3 ), timer );
 
+        //Resolution Multiplier
+        //changes the grain intensity based on how far your screen resolution is from the target
+        float resMultiplier = 1.0f;
+
+        if( resAdjust ){
+            float screenPixelCount = BUFFER_WIDTH * BUFFER_HEIGHT;
+            float targetPixelCount = (float)targetResolution[0] * (float)targetResolution[1];
+
+            resMultiplier = 1.0f / (targetPixelCount / screenPixelCount);
+        }
+
         // Intensity
-        noise.xyz         *= grainIntensity;
+        noise.xyz         *= grainIntensity * resMultiplier;
 
 		// Noise color
         noise.xyz         = lerp( noise.xxx, noise.xyz, grainColor );
