@@ -318,7 +318,7 @@ namespace pd80_filmgrain
         }
 
         // Intensity
-        noise.xyz         *= grainIntensity * pow(resMultiplier, 0.66f);
+        noise.xyz         *= grainIntensity * sqrt(resMultiplier);
 
 		// Noise color
         noise.xyz         = lerp( noise.xxx, noise.xyz, grainColor );
